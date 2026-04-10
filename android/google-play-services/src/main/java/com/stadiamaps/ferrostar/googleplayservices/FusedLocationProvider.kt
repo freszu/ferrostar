@@ -108,3 +108,76 @@ class FusedLocationProvider(context: Context) : LocationProviding {
     private const val TAG = "LocationProvider"
   }
 }
+
+
+class FusedLocationProvider2(context: Context) : LocationProviding {
+  private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+  @SuppressLint("MissingPermission")
+  override suspend fun getLastLocation(priority: Int): Location? =
+      suspendCoroutine { continuation ->
+        Log.d(TAG, "Requesting last location")
+        val requestStart = System.currentTimeMillis()
+
+        fusedLocationClient
+            .getLastLocation(LastLocationRequest.Builder().build())
+            .addOnSuccessListener { location ->
+              val durationSeconds = (System.currentTimeMillis() - requestStart) / 1000.0
+              Log.d(TAG, "Obtained last location in $durationSeconds s")
+              continuation.resume(location)
+            }
+            .addOnFailureListener { exception -> continuation.resumeWithException(exception) }
+      }
+
+  // Get the next fresh location update with timeout
+  @SuppressLint("MissingPermission")
+  override suspend fun getNextLocation(priority: Int, timeoutMillis: Long): Location? =
+      suspendCancellableCoroutine { continuation ->
+        val requestStart = System.currentTimeMillis()
+        Log.d(TAG, "Requesting next location with priority: $priority")
+        val cancellationTokenSource = CancellationTokenSource()
+
+        // https://developers.google.com/android/reference/com/google/android/gms/location/CurrentLocationRequest.Builder
+        val request =
+            CurrentLocationRequest.Builder()
+                .setDurationMillis(timeoutMillis)
+                .setPriority(priority)
+                .build()
+
+        fusedLocationClient
+            .getCurrentLocation(request, cancellationTokenSource.token)
+            .addOnSuccessListener { location ->
+              val durationSeconds = (System.currentTimeMillis() - requestStart) / 1000.0
+              Log.d(TAG,"Obtained next location in $durationSeconds s")
+              continuation.resume(location)
+            }
+            .addOnFailureListener { exception -> continuation.resumeWithException(exception) }
+
+        continuation.invokeOnCancellation {
+          val durationSeconds = (System.currentTimeMillis() - requestStart) / 1000.0
+          Log.d(TAG,"Next location cancelled after $durationSeconds s")
+          cancellationTokenSource.cancel()
+        }
+      }
+
+  // Continuous location updates as Flow
+  @SuppressLint("MissingPermission")
+  override fun locationUpdates(priority: Int, intervalMillis: Long): Flow<Location> = callbackFlow {
+    val request = LocationRequest.Builder(priority, intervalMillis) .setMinUpdateDistanceMeters(2.0f).setMinUpdateIntervalMillis(500).build()
+
+    val callback =
+        object : LocationCallback() {
+          override fun onLocationResult(result: LocationResult) {
+            result.lastLocation?.let { trySend(it) }
+          }
+        }
+
+    fusedLocationClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
+
+    awaitClose { fusedLocationClient.removeLocationUpdates(callback) }
+  }
+
+  companion object {
+    private const val TAG = "LocationProvider"
+  }
+}

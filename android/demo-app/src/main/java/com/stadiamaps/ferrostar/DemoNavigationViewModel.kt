@@ -131,15 +131,30 @@ class DemoNavigationViewModel(
       // TODO: Add label to waypoint?
       // TODO: Assign the destination to the `NavigationManagerBridge`
       Log.d(TAG, "fetching route to $destination with name $name")
+      //Wroclaw small repro
+      val waypoints = listOf(
+          Waypoint(
+              coordinate = GeographicCoordinate(51.078136391882026, 17.04683859415951),
+              kind = WaypointKind.BREAK,
+          ),
+          Waypoint(
+              coordinate = GeographicCoordinate(51.077398562471046, 17.062441231360594),
+              kind = WaypointKind.BREAK,
+          ),
+          Waypoint(
+              coordinate = GeographicCoordinate(51.077328292389694, 17.03386435820812),
+              kind = WaypointKind.BREAK,
+          ),
+          Waypoint(
+              coordinate = GeographicCoordinate(51.071671200752064, 17.032298502144897),
+              kind = WaypointKind.BREAK,
+          ),
+      )
+
       val routes =
           ferrostarCore.getRoutes(
               lastLocation,
-              listOf(
-                  Waypoint(
-                      coordinate =
-                          GeographicCoordinate(destination.latitude, destination.longitude),
-                      kind = WaypointKind.BREAK),
-              ))
+              waypoints)
 
       val route = routes.first()
 

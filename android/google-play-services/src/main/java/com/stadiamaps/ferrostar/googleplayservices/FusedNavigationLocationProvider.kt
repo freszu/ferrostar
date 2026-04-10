@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 class FusedNavigationLocationProvider(
     context: Context,
-    private val locationProvider: FusedLocationProvider = FusedLocationProvider(context)
+    private val locationProvider: FusedLocationProvider2 = FusedLocationProvider2(context)
 ): NavigationLocationProviding {
   override suspend fun lastLocation(): Location? =
       locationProvider.getLastLocation(Priority.PRIORITY_HIGH_ACCURACY)

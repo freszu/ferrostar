@@ -91,6 +91,17 @@ impl RouteDeviationTracking {
                         return RouteDeviation::NoDeviation;
                     }
 
+                    //     if let Some(step) = remaining_steps.first() {
+                    //         self.static_threshold_deviation_from_line(
+                    //             &Point::from(*user_location),
+                    //             &step.get_linestring(),
+                    //             max_acceptable_deviation.clone(),
+                    //         )
+                    //     } else {
+                    //         RouteDeviation::NoDeviation
+                    //     }
+                    // }
+
                     let mut first_step_deviation = None;
 
                     for (index, step) in remaining_steps.iter().enumerate() {

@@ -5,10 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -23,6 +20,8 @@ import com.stadiamaps.ferrostar.composeui.config.withCustomOverlayView
 import com.stadiamaps.ferrostar.composeui.config.withSpeedLimitStyle
 import com.stadiamaps.ferrostar.composeui.runtime.KeepScreenOnDisposableEffect
 import com.stadiamaps.ferrostar.composeui.views.components.speedlimit.SignageStyle
+import com.stadiamaps.ferrostar.maplibreui.routeline.BorderedPolyline
+import com.stadiamaps.ferrostar.maplibreui.routeline.RouteOverlayBuilder
 import com.stadiamaps.ferrostar.maplibreui.views.DynamicallyOrientingNavigationView
 import kotlin.math.min
 import org.maplibre.android.geometry.LatLng
@@ -95,6 +94,42 @@ fun DemoNavigationScene(
                   },
               ),
       onTapExit = { viewModel.stopNavigation() },
+      routeOverlayBuilder = RouteOverlayBuilder(
+          navigationPath = { state ->
+            // This bit is there just to make sure the completed steps are clearly visible
+            // without it its hard to spot the problem
+            state.routeGeometry?.let { geometry ->
+              // Full route in gray
+              BorderedPolyline(
+                  points = geometry.map { LatLng(it.lat, it.lng) },
+                  color = "#000000",
+                  zIndex = 0,
+              )
+
+              state.currentStepGeometryIndex?.let { stepIndex ->
+                state.remainingSteps?.let { remainingSteps ->
+                  val remainingGeometry = remainingSteps.flatMapIndexed { index, routeStep ->
+                    if (index == 0) {
+                      routeStep.geometry.drop(stepIndex)
+                    } else {
+                      routeStep.geometry
+                    }
+                  }
+
+                  val fullRemainingPoints = remainingGeometry.map {
+                    LatLng(it.lat, it.lng)
+                  }
+
+                  // Remaining route in default blue
+                  BorderedPolyline(
+                      points = fullRemainingPoints,
+                      zIndex = 2,
+                  )
+                }
+              }
+            }
+          }
+      ),
   ) { uiState ->
         // Trivial, if silly example of how to add your own overlay layers.
         // (Also incidentally highlights the lag inherent in MapLibre location tracking

@@ -159,17 +159,17 @@ object AppModule {
     // In fact, we hope that most don't!
     // In case you do though, this sample implementation shows what you'll need to get started
     // (this basically re-implements the default behaviors).
-    core.deviationHandler = RouteDeviationHandler { _, _, remainingWaypoints ->
-      CorrectiveAction.GetNewRoutes(remainingWaypoints)
-    }
+//    core.deviationHandler = RouteDeviationHandler { _, _, remainingWaypoints ->
+//      CorrectiveAction.GetNewRoutes(remainingWaypoints)
+//    }
 
-    core.alternativeRouteProcessor = AlternativeRouteProcessor { it, routes ->
-      Log.i(TAG, "Received alternate route(s): $routes")
-      if (routes.isNotEmpty()) {
-        // NB: Use `replaceRoute` for cases like this!
-        it.replaceRoute(routes.first())
-      }
-    }
+//    core.alternativeRouteProcessor = AlternativeRouteProcessor { it, routes ->
+//      Log.i(TAG, "Received alternate route(s): $routes")
+//      if (routes.isNotEmpty()) {
+//        // NB: Use `replaceRoute` for cases like this!
+//        it.replaceRoute(routes.first())
+//      }
+//    }
 
     core
   }
